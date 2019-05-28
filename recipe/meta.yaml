@@ -12,11 +12,11 @@ source:
 
 build:
   number: 0
-  skip: True  # [not linux]
+  skip: True  # [win]
 
 requirements:
   build:
-    - {{ compiler('cxx') }}   # required for C++ headers
+    - {{ compiler('cxx') }}   # [linux] required for C++ headers
     - cmake 3.12.*
     - make
     - maven
@@ -28,7 +28,7 @@ requirements:
   host:
     - snappy  # required for mapd-core > 4.5.0
     - arrow-cpp 0.12.*
-    - blosc
+    - blosc   # [linux]
     - boost-cpp
     - double-conversion
     - libgdal 2.4.*
@@ -36,13 +36,13 @@ requirements:
     - gflags
     - glog <=0.3.5
     - libarchive
-    - libkml
+    - libkml  # [linux]
     - libpng
     - llvmdev 7.*
-    - openssl
+    - openssl # [linux]
     - parquet-cpp
     - thrift-cpp >=0.11.0
-    - ncurses
+    - ncurses # [linux]
   run:
     - snappy  # required for mapd-core > 4.5.0
     - boost-cpp
@@ -55,6 +55,9 @@ requirements:
     - xz
     - bzip2
     - zlib
+    - thrift-cpp >=0.11.0 # [osx]
+    - libcxx # [osx]
+
 about:
   home: https://www.omnisci.com/
   license: Apache-2.0

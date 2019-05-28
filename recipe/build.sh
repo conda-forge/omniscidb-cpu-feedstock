@@ -9,12 +9,6 @@ else
     INPLACE_SED="sed -i"
 fi
 
-# mapd-core v 4.5.0 (or older) hardcodes /usr/bin/java. Grab
-# Calcite.cpp with a fix
-# (https://github.com/omnisci/mapd-core/pull/316) from a repo:
-# wget https://raw.githubusercontent.com/omnisci/mapd-core/7c1faa09dd88d0cc735b629048f74d71baa9179f/Calcite/Calcite.cpp
-# mv Calcite.cpp Calcite/
-
 # conda build cannot find boost libraries from
 # ThirdParty/lib. Actually, moving environment boost libraries to
 # ThirdParty/lib does not make much sense. The following is just a
@@ -24,6 +18,10 @@ $INPLACE_SED 's:DESTINATION ThirdParty/lib:DESTINATION lib:g' CMakeLists.txt
 
 export LDFLAGS="-L$PREFIX/lib -Wl,-rpath,$PREFIX/lib"
 
+# For debugging:
+# export CXXFLAGS="$CXXFLAGS -v -Wfatal-error"
+
+
 # Enforce PREFIX instead of BUILD_PREFIX:
 export ZLIB_ROOT=$PREFIX
 export LibArchive_ROOT=$PREFIX
@@ -32,8 +30,17 @@ export Curses_ROOT=$PREFIX
 if [ $(uname) == Darwin ]; then
     # Darwin has only clang. WIP.
     COMPILERNAME=clang   # options: clang
-    export CC=$CLANG
-    export CXX=$CLANGXX
+    export CC=clang
+    export CXX=clang++
+
+    mv QueryEngine/CMakeLists.txt QueryEngine/CMakeLists.txt-orig
+    # Adding `--sysroot=...` resolves `no member named 'signbit' in the global namespace` error:
+    echo -e "set(BUILD_SYSROOT $CONDA_BUILD_SYSROOT)" > QueryEngine/CMakeLists.txt
+    # Adding `-I$BUILD_SYSROOT_INLCUDE` resolves `assert.h file not found` error:
+    echo -e "set(BUILD_SYSROOT_INLCUDE $CONDA_BUILD_SYSROOT/usr/include)" >> QueryEngine/CMakeLists.txt
+    cat QueryEngine/CMakeLists.txt-orig >> QueryEngine/CMakeLists.txt
+
+    $INPLACE_SED 's/ARGS -std=c++14/ARGS -std=c++14 -v --sysroot=\${BUILD_SYSROOT} -I\${BUILD_SYSROOT_INCLUDE}/g' QueryEngine/CMakeLists.txt
 else
     # Linux
     echo "uname=${uname}"
@@ -85,10 +92,12 @@ else
     export CXXFLAGS="$CXXFLAGS  -B $GCCLIBDIR"           # resolves `cannot find crtbegin.o`
     export CFLAGS="$CFLAGS  -B $GCCSYSROOT/usr/lib"      # resolves `cannot find crt1.o`
     export CFLAGS="$CFLAGS  -B $GCCLIBDIR"               # resolves `cannot find crtbegin.o`
+
+    # make sure that $LD is always used for a linker:
+    cp -v $LD $BUILD_PREFIX/bin/ld
 fi
 
-# make sure that $LD is always used for a linker:
-cp -v $LD $BUILD_PREFIX/bin/ld
+
 
 export CMAKE_COMPILERS="-DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX"  
 
