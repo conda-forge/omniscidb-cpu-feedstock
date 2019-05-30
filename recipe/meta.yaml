@@ -11,44 +11,49 @@ source:
   sha256: {{ sha256 }}
 
 build:
-  number: 0
+  number: 1
   skip: True  # [not linux]
 
 requirements:
   build:
-    - {{ compiler('cxx') }}   # required for C++ headers
-    - cmake 3.12.*
+    - {{ compiler('cxx') }}   # [linux] required for C++ headers (when using clang)
+    - {{ compiler('c') }}     # [linux] (when using gcc, disable it when switching to clang)
+    - cmake
     - make
     - maven
     - openjdk 8.*
     - wget
-    - clangdev 7.*
-    - go >=1.6
+    - clangdev      # [linux] llvm 8 is ok when using gcc as compiler
+    - clangdev 7.*  # [osx] using clang 8 as compiler, many tests fail 
+    - go
     - bisonpp
   host:
-    - snappy  # required for mapd-core > 4.5.0
-    - arrow-cpp 0.12.*
+    - snappy
+    - arrow-cpp
     - blosc
     - boost-cpp
     - double-conversion
-    - libgdal 2.4.*
+    - libgdal 2.*   # with libgdal-3 one ImportTest fails
     - flex
     - gflags
-    - glog <=0.3.5
+    - glog 0.3.*    # with glog 0.4 omniscidb 4.6.1 build fails, remove this restriction when upgrading omniscidb
     - libarchive
     - libkml
     - libpng
-    - llvmdev 7.*
+    - llvmdev       # [linux]
+    - clangdev      # [linux], required here for clang/llvm 8 support
+    - llvmdev 7.*   # [osx], see above
+    - clangdev 7.*  # [osx], see above
     - openssl
     - parquet-cpp
     - thrift-cpp >=0.11.0
     - ncurses
   run:
-    - snappy  # required for mapd-core > 4.5.0
+    - snappy
     - boost-cpp
     - double-conversion
-    - libgdal 2.4.*
-    - glog <=0.3.5
+    - libgdal 2.*
+    - glog 0.3.*  # see comment above
     - gflags
     - openjdk 8.*
     - ncurses
