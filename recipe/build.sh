@@ -27,11 +27,31 @@ export ZLIB_ROOT=$PREFIX
 export LibArchive_ROOT=$PREFIX
 export Curses_ROOT=$PREFIX
 
+# Make sure -fPIC is not in CXXFLAGS (that some conda packages may
+# add):
+export CXXFLAGS="`echo $CXXFLAGS | sed 's/-fPIC//'`"
+
+# go overwrites CC and CXX with nonsense (see
+# https://github.com/conda-forge/go-feedstock/issues/47), hence we
+# redefine these below. The following resets GO env variables for
+# omniscidb build. IIRC, the following is needed for CUDA support.
+#export CGO_ENABLED=1
+#export CGO_LDFLAGS=
+#export CGO_CFLAGS=$CFLAGS
+#export CGO_CPPFLAGS=
+
+
 if [ $(uname) == Darwin ]; then
     # Darwin has only clang. WIP.
     COMPILERNAME=clang   # options: clang
-    export CC=clang
-    export CXX=clang++
+    export CMAKE_CC=$BUILD_PREFIX/bin/clang
+    export CMAKE_CXX=$BUILD_PREFIX/bin/clang++
+
+    # go overwrites CC and CXX with nonsense (see
+    # https://github.com/conda-forge/go-feedstock/issues/47), hence we
+    # reset these:
+    export CC=   # not used
+    export CXX=  # not used
 
     mv QueryEngine/CMakeLists.txt QueryEngine/CMakeLists.txt-orig
     # Adding `--sysroot=...` resolves `no member named 'signbit' in the global namespace` error:

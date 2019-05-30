@@ -11,13 +11,16 @@ source:
   sha256: {{ sha256 }}
 
 build:
-  number: 0
+  number: 2
   skip: True  # [win]
 
 requirements:
   build:
-    - {{ compiler('cxx') }}   # [linux] required for C++ headers
-    - cmake 3.12.*
+    # required for C++ headers even when using clang as compiler:
+    - {{ compiler('cxx') }}   # [linux]
+    # when using clang as compiler (see build.sh) disable compiler('c'):
+    - {{ compiler('c') }}     # [linux]
+    - cmake
     - make
     - maven
     - openjdk 8.*
