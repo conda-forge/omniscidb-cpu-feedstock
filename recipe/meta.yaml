@@ -23,7 +23,8 @@ requirements:
     - maven
     - openjdk 8.*
     - wget
-    - clangdev
+    - clangdev      # [linux] llvm 8 is ok when using gcc as compiler
+    - clangdev 7.*  # [osx] using clang 8 as compiler, many tests fail 
     - go
     - bisonpp
   host:
@@ -32,15 +33,17 @@ requirements:
     - blosc
     - boost-cpp
     - double-conversion
-    - libgdal 2.*  # with libgdal-3 one ImportTest fails
+    - libgdal 2.*   # with libgdal-3 one ImportTest fails
     - flex
     - gflags
-    - glog 0.3.*  # with glog 0.4 omniscidb 4.6.1 build fails, remove this restriction when upgrading omniscidb
+    - glog 0.3.*    # with glog 0.4 omniscidb 4.6.1 build fails, remove this restriction when upgrading omniscidb
     - libarchive
     - libkml
     - libpng
-    - llvmdev
-    - clangdev  # required here for clang 8 support
+    - llvmdev       # [linux]
+    - clangdev      # [linux], required here for clang/llvm 8 support
+    - llvmdev 7.*   # [osx], see above
+    - clangdev 7.*  # [osx], see above
     - openssl
     - parquet-cpp
     - thrift-cpp >=0.11.0

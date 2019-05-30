@@ -31,10 +31,10 @@ export CXXFLAGS="`echo $CXXFLAGS | sed 's/-fPIC//'`"
 # https://github.com/conda-forge/go-feedstock/issues/47), hence we
 # redefine these below. The following resets GO env variables for
 # omniscidb build:
-export CGO_ENABLED=1
-export CGO_LDFLAGS=
-export CGO_CFLAGS=$CFLAGS
-export CGO_CPPFLAGS=
+#export CGO_ENABLED=1
+#export CGO_LDFLAGS=
+#export CGO_CFLAGS=$CFLAGS
+#export CGO_CPPFLAGS=
 
 
 if [ $(uname) == Darwin ]; then
@@ -42,6 +42,16 @@ if [ $(uname) == Darwin ]; then
     COMPILERNAME=clang   # options: clang
     export CMAKE_CC=$CLANG
     export CMAKE_CXX=$CLANGXX
+
+    mv QueryEngine/CMakeLists.txt QueryEngine/CMakeLists.txt-orig
+    # Adding `--sysroot=...` resolves `no member named 'signbit' in the global namespace` error:
+    echo -e "set(BUILD_SYSROOT $CONDA_BUILD_SYSROOT)" > QueryEngine/CMakeLists.txt
+    # Adding `-I$BUILD_SYSROOT_INLCUDE` resolves `assert.h file not found` error:
+    echo -e "set(BUILD_SYSROOT_INLCUDE $CONDA_BUILD_SYSROOT/usr/include)" >> QueryEngine/CMakeLists.txt
+    cat QueryEngine/CMakeLists.txt-orig >> QueryEngine/CMakeLists.txt
+
+    $INPLACE_SED 's/ARGS -std=c++14/ARGS -std=c++14 -v --sysroot=\${BUILD_SYSROOT} -I\${BUILD_SYSROOT_INCLUDE}/g' QueryEngine/CMakeLists.txt
+
 else
     # Linux
     echo "uname=${uname}"
@@ -125,6 +135,9 @@ cmake -Wno-dev \
 
 make -j $CPU_COUNT
 make install
+
+# the latest double-conversion.so is installed to <prefix>/lib64:
+export LD_LIBRARY_PATH=$PREFIX/lib64:$LD_LIBRARY_PATH
 
 mkdir tmp
 $PREFIX/bin/initdb tmp
