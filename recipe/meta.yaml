@@ -23,14 +23,14 @@ requirements:
     - maven
     - openjdk 8.*
     - wget
-    - clangdev 7.*
+    - clangdev
     - go
     - bisonpp
   host:
     - snappy
     - arrow-cpp
     - blosc
-    - boost-cpp 1.68.*  # the latest (1.70) gives a conflict with libkml build (using 1.68)
+    - boost-cpp
     - double-conversion
     - libgdal 2.*  # with libgdal-3 one ImportTest fails
     - flex
@@ -39,8 +39,8 @@ requirements:
     - libarchive
     - libkml
     - libpng
-    - llvmdev 7.*
-    - clangdev 7.*  # required here for clang 8 support
+    - llvmdev
+    - clangdev  # required here for clang 8 support
     - openssl
     - parquet-cpp
     - thrift-cpp >=0.11.0

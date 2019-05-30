@@ -33,7 +33,7 @@ export CXXFLAGS="`echo $CXXFLAGS | sed 's/-fPIC//'`"
 # omniscidb build:
 export CGO_ENABLED=1
 export CGO_LDFLAGS=
-export CGO_CFLAGS=
+export CGO_CFLAGS=$CFLAGS
 export CGO_CPPFLAGS=
 
 
