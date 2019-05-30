@@ -30,7 +30,7 @@ requirements:
     - snappy
     - arrow-cpp
     - blosc
-    - boost-cpp
+    - boost-cpp 1.68.*  # the latest (1.70) gives a conflict with libkml build (using 1.68)
     - double-conversion
     - libgdal 2.*  # with libgdal-3 one ImportTest fails
     - flex
@@ -40,6 +40,7 @@ requirements:
     - libkml
     - libpng
     - llvmdev 7.*
+    - clangdev 7.*  # required here for clang 8 support
     - openssl
     - parquet-cpp
     - thrift-cpp >=0.11.0
