@@ -64,10 +64,8 @@ if [ $(uname) == Darwin ]; then
     $INPLACE_SED 's/ParserWrapper::ParserWrapper(std::string query_string) {/ParserWrapper::ParserWrapper(std::string query_string) {  std::cout<<"ParserWrapper::ParserWrapper: "<<query_string.c_str()<<std::endl;/1' Parser/ParserWrapper.cpp
 
     # workaround to &A[0] issue when A is empty vector
-    $INPLACE_SED "s/([&]([a-zA-Z0-9_]+)\[0\])/_GET_PTR(\2)/g" -E QueryEngine/QueryExecutionContext.cpp
-    $INPLACE_SED 's/extern/#define _GET_PTR(A) ((A).size()?\&(A)\[0\]:nullptr)\'$'\nextern/1' -E QueryEngine/QueryExecutionContext.cpp
-
-
+    #$INPLACE_SED "s/([&]([a-zA-Z0-9_]+)\[0\])/_GET_PTR(\2)/g" -E QueryEngine/QueryExecutionContext.cpp
+    #$INPLACE_SED 's/extern/#define _GET_PTR(A) ((A).size()?\&(A)\[0\]:nullptr)\'$'\nextern/1' -E QueryEngine/QueryExecutionContext.cpp
 else
     # Linux
     echo "uname=${uname}"
@@ -158,7 +156,7 @@ export LD_LIBRARY_PATH=$PREFIX/lib64:$LD_LIBRARY_PATH
 mkdir -p tmp
 $PREFIX/bin/initdb tmp
 # make sanity_tests
-$PYTHON $RECIPE_DIR/run_sanity_tests.py || exit 1
+python $RECIPE_DIR/run_sanity_tests.py || exit 1
 rm -rf tmp
 
 # copy initdb to mapd_initdb to avoid conflict with psql initdb

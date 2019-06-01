@@ -52,7 +52,7 @@ def get_queries(out):
             queries.append(line.split(' ', 1)[1].strip())
     return queries
 
-def system(cmd, timeout = 60*10, stdout=None, stderr=None):
+def system(cmd, timeout = 60*7, stdout=None, stderr=None):
     queries = None
     try:
         p = subprocess.run(list(cmd.split()), timeout=timeout, capture_output=True)
