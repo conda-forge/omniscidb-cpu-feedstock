@@ -58,6 +58,9 @@ if [ $(uname) == Darwin ]; then
 
     $INPLACE_SED 's/ARGS -std=c++14/ARGS -std=c++14 -v --sysroot=\${BUILD_SYSROOT} -I\${BUILD_SYSROOT_INCLUDE}/g' QueryEngine/CMakeLists.txt
 
+    $INPLACE_SED 's/(#include "ParserWrapper.h")/#include <iostream>\
+\1/1' -E Parser/ParserWrapper.cpp
+    $INPLACE_SED 's/ParserWrapper::ParserWrapper(std::string query_string) {/ParserWrapper::ParserWrapper(std::string query_string) {  std::cout<<"ParserWrapper::ParserWrapper: "<<query_string.c_str()<<std::endl;/1' Parser/ParserWrapper.cpp
 else
     # Linux
     echo "uname=${uname}"
@@ -145,9 +148,10 @@ make install
 # the latest double-conversion.so is installed to <prefix>/lib64:
 export LD_LIBRARY_PATH=$PREFIX/lib64:$LD_LIBRARY_PATH
 
-mkdir tmp
+mkdir -p tmp
 $PREFIX/bin/initdb tmp
-make sanity_tests
+# make sanity_tests
+$PYTHON $RECIPE_DIR/run_sanity_tests.py || exit 1
 rm -rf tmp
 
 # copy initdb to mapd_initdb to avoid conflict with psql initdb
