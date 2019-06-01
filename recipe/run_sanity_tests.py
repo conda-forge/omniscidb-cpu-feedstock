@@ -50,14 +50,6 @@ def get_queries(out):
     for line in out.splitlines():
         if line.startswith('ParserWrapper::ParserWrapper:'):
             queries.append(line.split(' ', 1)[1].strip())
-        # obsolete:
-        if line.startswith('*********************'):
-            last_stars = True
-            continue
-        if last_stars:
-            if line and not line[0].isdigit():
-                queries.append(line.strip())
-            last_stars = False
     return queries
 
 def system(cmd, timeout = 60*10, stdout=None, stderr=None):
