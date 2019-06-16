@@ -29,14 +29,14 @@ requirements:
     - bisonpp
   host:
     - snappy
-    - arrow-cpp
+    - arrow-cpp >=0.12.1
     - blosc
-    - boost-cpp
+    - boost-cpp 1.68.*
     - double-conversion
     - libgdal 2.*   # with libgdal-3 one ImportTest fails
     - flex
     - gflags
-    - glog 0.3.*    # with glog 0.4 omniscidb 4.6.1 build fails, remove this restriction when upgrading omniscidb
+    - glog
     - libarchive
     - libkml
     - libpng
@@ -45,21 +45,21 @@ requirements:
     - llvmdev 7.*   # [osx], see above
     - clangdev 7.*  # [osx], see above
     - openssl
-    - parquet-cpp
     - thrift-cpp >=0.11.0
     - ncurses
   run:
     - snappy
-    - boost-cpp
+    - boost-cpp 1.68.*
     - double-conversion
     - libgdal 2.*
-    - glog 0.3.*  # see comment above
+    - glog
     - gflags
     - openjdk 8.*
     - ncurses
     - xz
     - bzip2
     - zlib
+
 about:
   home: https://www.omnisci.com/
   license: Apache-2.0
