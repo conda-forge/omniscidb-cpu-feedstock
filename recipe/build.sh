@@ -104,8 +104,8 @@ else
         export CMAKE_CC=$BUILD_PREFIX/bin/$HOST-gcc
         export CMAKE_CXX=$BUILD_PREFIX/bin/$HOST-g++
 
-        # Add additional options to clang++ command, resolves `not found include file`: cstdint
-        $INPLACE_SED 's!"-emit-llvm"!"-emit-llvm", "-I'$GXXINCLUDEDIR'"!g' QueryEngine/UDFCompiler.cpp
+        # Add gcc include directory to astparser, resolves `not found include file`: cstdint
+        $INPLACE_SED 's!arg_vector\[3\] = {arg0, arg1!arg_vector\[4\] = {arg0, arg1, "-extra-arg=-I'$GXXINCLUDEDIR'"!g' QueryEngine/UDFCompiler.cpp
     fi
 
     # fixes `undefined reference to
