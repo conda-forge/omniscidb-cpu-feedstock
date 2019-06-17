@@ -59,6 +59,9 @@ requirements:
     - xz
     - bzip2
     - zlib
+    # omnscidb server calls clang++ in runtime for UDF support, hence,
+    # should we include clangdev (and compiler('cxx')) dependency
+    # here?
 
 about:
   home: https://www.omnisci.com/
