@@ -59,9 +59,12 @@ requirements:
     - xz
     - bzip2
     - zlib
-    # omnscidb server calls clang++ in runtime for UDF support, hence,
-    # should we include clangdev (and compiler('cxx')) dependency
-    # here?
+    # omnscidb server calls clang++ in runtime for UDF support
+    - {{ compiler('cxx') }}   # [linux] required for C++ headers (when using clang)
+    - llvmdev       # [linux]
+    - clangdev      # [linux], required here for clang/llvm 8 support
+    - llvmdev 7.*   # [osx], see above
+    - clangdev 7.*  # [osx], see above
 
 about:
   home: https://www.omnisci.com/
