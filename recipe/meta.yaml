@@ -1,6 +1,6 @@
 {% set name = "omniscidb-cpu" %}
-{% set version = "4.6.1" %}
-{% set sha256 = "04d69fd4b5d48e4bff937ad9c149c8a98746d54263485fcc3b840a4682bdda0d" %}
+{% set version = "4.7.0" %}
+{% set sha256 = "00e4937ca15a13658e24bc18dd0468dd4820cf02a3d014161ac8cc9c6c7d3d1c" %}
 
 package:
   name: {{ name|lower }}
@@ -11,7 +11,7 @@ source:
   sha256: {{ sha256 }}
 
 build:
-  number: 1
+  number: 0
   skip: True  # [not linux]
 
 requirements:
@@ -29,14 +29,14 @@ requirements:
     - bisonpp
   host:
     - snappy
-    - arrow-cpp
+    - arrow-cpp >=0.12.1
     - blosc
-    - boost-cpp
+    - boost-cpp 1.68.*
     - double-conversion
     - libgdal 2.*   # with libgdal-3 one ImportTest fails
     - flex
     - gflags
-    - glog 0.3.*    # with glog 0.4 omniscidb 4.6.1 build fails, remove this restriction when upgrading omniscidb
+    - glog
     - libarchive
     - libkml
     - libpng
@@ -45,21 +45,30 @@ requirements:
     - llvmdev 7.*   # [osx], see above
     - clangdev 7.*  # [osx], see above
     - openssl
-    - parquet-cpp
     - thrift-cpp >=0.11.0
     - ncurses
+    # omnscidb server calls clang++ in runtime for UDF support
+    - {{ compiler('cxx') }}   # [linux] required for C++ headers (when using clang)
   run:
+    - arrow-cpp >=0.12.1
     - snappy
-    - boost-cpp
+    - boost-cpp 1.68.*
     - double-conversion
     - libgdal 2.*
-    - glog 0.3.*  # see comment above
+    - glog
     - gflags
     - openjdk 8.*
     - ncurses
     - xz
     - bzip2
     - zlib
+    # omnscidb server calls clang++ in runtime for UDF support
+    - {{ compiler('cxx') }}   # [linux] required for C++ headers (when using clang)
+    - llvmdev       # [linux]
+    - clangdev      # [linux], required here for clang/llvm 8 support
+    - llvmdev 7.*   # [osx], see above
+    - clangdev 7.*  # [osx], see above
+
 about:
   home: https://www.omnisci.com/
   license: Apache-2.0
