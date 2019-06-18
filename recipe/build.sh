@@ -60,14 +60,13 @@ else
     # clang.
     COMPILERNAME=gcc                      # options: clang, gcc
 
+    GXX=$BUILD_PREFIX/bin/$HOST-g++         # replace with $GXX
+    GCCSYSROOT=$BUILD_PREFIX/$HOST/sysroot
+    GCCVERSION=$(basename $(dirname $($GXX -print-libgcc-file-name)))
+    GXXINCLUDEDIR=$BUILD_PREFIX/$HOST/include/c++/$GCCVERSION
+    GCCLIBDIR=$BUILD_PREFIX/lib/gcc/$HOST/$GCCVERSION
+
     if [ "$COMPILERNAME" == "clang" ]; then
-
-        GXX=$BUILD_PREFIX/bin/$HOST-g++         # replace with $GXX
-        GCCSYSROOT=$BUILD_PREFIX/$HOST/sysroot
-        GCCVERSION=$(basename $(dirname $($GXX -print-libgcc-file-name)))
-        GXXINCLUDEDIR=$BUILD_PREFIX/$HOST/include/c++/$GCCVERSION
-        GCCLIBDIR=$BUILD_PREFIX/lib/gcc/$HOST/$GCCVERSION
-
         # Fix `not found include file` errors:
         CXXINC1=$GXXINCLUDEDIR            # cassert, ...
         CXXINC2=$GXXINCLUDEDIR/$HOST      # <string> requires bits/c++config.h
@@ -104,6 +103,9 @@ else
         export CXX=  # not used
         export CMAKE_CC=$BUILD_PREFIX/bin/$HOST-gcc
         export CMAKE_CXX=$BUILD_PREFIX/bin/$HOST-g++
+
+        # Add gcc include directory to astparser, resolves `not found include file`: cstdint
+        $INPLACE_SED 's!arg_vector\[3\] = {arg0, arg1!arg_vector\[4\] = {arg0, arg1, "-extra-arg=-I'$GXXINCLUDEDIR'"!g' QueryEngine/UDFCompiler.cpp
     fi
 
     # fixes `undefined reference to
