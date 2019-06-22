@@ -1,6 +1,6 @@
 {% set name = "omniscidb-cpu" %}
-{% set version = "4.6.1" %}
-{% set sha256 = "04d69fd4b5d48e4bff937ad9c149c8a98746d54263485fcc3b840a4682bdda0d" %}
+{% set version = "4.7.0" %}
+{% set sha256 = "00e4937ca15a13658e24bc18dd0468dd4820cf02a3d014161ac8cc9c6c7d3d1c" %}
 
 package:
   name: {{ name|lower }}
@@ -16,45 +16,59 @@ build:
 
 requirements:
   build:
-    - {{ compiler('cxx') }}   # required for C++ headers
-    - cmake 3.12.*
+    - {{ compiler('cxx') }}   # [linux] required for C++ headers (when using clang)
+    - {{ compiler('c') }}     # [linux] (when using gcc, disable it when switching to clang)
+    - cmake
     - make
     - maven
     - openjdk 8.*
     - wget
-    - clangdev 7.*
-    - go >=1.6
+    - clangdev      # [linux] llvm 8 is ok when using gcc as compiler
+    - clangdev 7.*  # [osx] using clang 8 as compiler, many tests fail 
+    - go
     - bisonpp
   host:
-    - snappy  # required for mapd-core > 4.5.0
-    - arrow-cpp 0.12.*
+    - snappy
+    - arrow-cpp >=0.12.1
     - blosc
-    - boost-cpp
+    - boost-cpp 1.68.*
     - double-conversion
-    - libgdal 2.4.*
+    - libgdal 2.*   # with libgdal-3 one ImportTest fails
     - flex
     - gflags
-    - glog <=0.3.5
+    - glog
     - libarchive
     - libkml
     - libpng
-    - llvmdev 7.*
+    - llvmdev       # [linux]
+    - clangdev      # [linux], required here for clang/llvm 8 support
+    - llvmdev 7.*   # [osx], see above
+    - clangdev 7.*  # [osx], see above
     - openssl
-    - parquet-cpp
     - thrift-cpp >=0.11.0
     - ncurses
+    # omnscidb server calls clang++ in runtime for UDF support
+    - {{ compiler('cxx') }}   # [linux] required for C++ headers (when using clang)
   run:
-    - snappy  # required for mapd-core > 4.5.0
-    - boost-cpp
+    - arrow-cpp >=0.12.1
+    - snappy
+    - boost-cpp 1.68.*
     - double-conversion
-    - libgdal 2.4.*
-    - glog <=0.3.5
+    - libgdal 2.*
+    - glog
     - gflags
     - openjdk 8.*
     - ncurses
     - xz
     - bzip2
     - zlib
+    # omnscidb server calls clang++ in runtime for UDF support
+    - {{ compiler('cxx') }}   # [linux] required for C++ headers (when using clang)
+    - llvmdev       # [linux]
+    - clangdev      # [linux], required here for clang/llvm 8 support
+    - llvmdev 7.*   # [osx], see above
+    - clangdev 7.*  # [osx], see above
+
 about:
   home: https://www.omnisci.com/
   license: Apache-2.0
