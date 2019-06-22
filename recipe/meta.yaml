@@ -31,7 +31,7 @@ requirements:
     - snappy
     - arrow-cpp >=0.12.1
     - blosc
-    - boost-cpp 1.68.*
+    - boost-cpp
     - double-conversion
     - libgdal 2.*   # with libgdal-3 one ImportTest fails
     - flex
@@ -52,7 +52,7 @@ requirements:
   run:
     - arrow-cpp >=0.12.1
     - snappy
-    - boost-cpp 1.68.*
+    - boost-cpp
     - double-conversion
     - libgdal 2.*
     - glog
