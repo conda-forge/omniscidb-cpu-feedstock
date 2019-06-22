@@ -9,12 +9,6 @@ else
     INPLACE_SED="sed -i"
 fi
 
-# mapd-core v 4.5.0 (or older) hardcodes /usr/bin/java. Grab
-# Calcite.cpp with a fix
-# (https://github.com/omnisci/mapd-core/pull/316) from a repo:
-# wget https://raw.githubusercontent.com/omnisci/mapd-core/7c1faa09dd88d0cc735b629048f74d71baa9179f/Calcite/Calcite.cpp
-# mv Calcite.cpp Calcite/
-
 # conda build cannot find boost libraries from
 # ThirdParty/lib. Actually, moving environment boost libraries to
 # ThirdParty/lib does not make much sense. The following is just a
@@ -29,73 +23,105 @@ export ZLIB_ROOT=$PREFIX
 export LibArchive_ROOT=$PREFIX
 export Curses_ROOT=$PREFIX
 
+# Make sure -fPIC is not in CXXFLAGS (that some conda packages may
+# add):
+export CXXFLAGS="`echo $CXXFLAGS | sed 's/-fPIC//'`"
+
+# go overwrites CC and CXX with nonsense (see
+# https://github.com/conda-forge/go-feedstock/issues/47), hence we
+# redefine these below. The following resets GO env variables for
+# omniscidb build:
+#export CGO_ENABLED=1
+#export CGO_LDFLAGS=
+#export CGO_CFLAGS=$CFLAGS
+#export CGO_CPPFLAGS=
+
+
 if [ $(uname) == Darwin ]; then
     # Darwin has only clang. WIP.
     COMPILERNAME=clang   # options: clang
-    export CC=$CLANG
-    export CXX=$CLANGXX
+    export CMAKE_CC=$CLANG
+    export CMAKE_CXX=$CLANGXX
+
+    mv QueryEngine/CMakeLists.txt QueryEngine/CMakeLists.txt-orig
+    # Adding `--sysroot=...` resolves `no member named 'signbit' in the global namespace` error:
+    echo -e "set(BUILD_SYSROOT $CONDA_BUILD_SYSROOT)" > QueryEngine/CMakeLists.txt
+    # Adding `-I$BUILD_SYSROOT_INLCUDE` resolves `assert.h file not found` error:
+    echo -e "set(BUILD_SYSROOT_INLCUDE $CONDA_BUILD_SYSROOT/usr/include)" >> QueryEngine/CMakeLists.txt
+    cat QueryEngine/CMakeLists.txt-orig >> QueryEngine/CMakeLists.txt
+
+    $INPLACE_SED 's/ARGS -std=c++14/ARGS -std=c++14 -v --sysroot=\${BUILD_SYSROOT} -I\${BUILD_SYSROOT_INCLUDE}/g' QueryEngine/CMakeLists.txt
+
 else
     # Linux
     echo "uname=${uname}"
-    COMPILERNAME=clang                      # options: clang, gcc
+    # must use gcc compiler as llvmdev is built with gcc and there
+    # exists ABI incompatibility between llvmdev-7 built with gcc and
+    # clang.
+    COMPILERNAME=gcc                      # options: clang, gcc
+
     GXX=$BUILD_PREFIX/bin/$HOST-g++         # replace with $GXX
     GCCSYSROOT=$BUILD_PREFIX/$HOST/sysroot
     GCCVERSION=$(basename $(dirname $($GXX -print-libgcc-file-name)))
     GXXINCLUDEDIR=$BUILD_PREFIX/$HOST/include/c++/$GCCVERSION
     GCCLIBDIR=$BUILD_PREFIX/lib/gcc/$HOST/$GCCVERSION
 
-    # Fix `not found include file` errors:
-    CXXINC1=$GXXINCLUDEDIR            # cassert, ...
-    CXXINC2=$GXXINCLUDEDIR/$HOST      # <string> requires bits/c++config.h
-    CXXINC3=$GCCSYSROOT/usr/include   # pthread.h
-
-    # Add include directories for explicit clang++ call in
-    # QueryEngine/CMakeLists.txt for building RuntimeFunctions.bc and
-    # ExtensionFunctions.ast:
-    mv QueryEngine/CMakeLists.txt QueryEngine/CMakeLists.txt-orig
-    echo -e "set(CXXINC1 \"-I$CXXINC1\")" > QueryEngine/CMakeLists.txt
-    echo -e "set(CXXINC2 \"-I$CXXINC2\")" >> QueryEngine/CMakeLists.txt
-    echo -e "set(CXXINC3 \"-I$CXXINC3\")" >> QueryEngine/CMakeLists.txt
-    cat QueryEngine/CMakeLists.txt-orig >> QueryEngine/CMakeLists.txt
-    $INPLACE_SED 's/ARGS -std=c++14/ARGS -std=c++14 \${CXXINC1} \${CXXINC2} \${CXXINC3}/g' QueryEngine/CMakeLists.txt
-
     if [ "$COMPILERNAME" == "clang" ]; then
+        # Fix `not found include file` errors:
+        CXXINC1=$GXXINCLUDEDIR            # cassert, ...
+        CXXINC2=$GXXINCLUDEDIR/$HOST      # <string> requires bits/c++config.h
+        CXXINC3=$GCCSYSROOT/usr/include   # pthread.h
+
+        # Add include directories for explicit clang++ call in
+        # QueryEngine/CMakeLists.txt for building RuntimeFunctions.bc
+        # and ExtensionFunctions.ast:
+        mv QueryEngine/CMakeLists.txt QueryEngine/CMakeLists.txt-orig
+        echo -e "set(CXXINC1 \"-I$CXXINC1\")" > QueryEngine/CMakeLists.txt
+        echo -e "set(CXXINC2 \"-I$CXXINC2\")" >> QueryEngine/CMakeLists.txt
+        echo -e "set(CXXINC3 \"-I$CXXINC3\")" >> QueryEngine/CMakeLists.txt
+        cat QueryEngine/CMakeLists.txt-orig >> QueryEngine/CMakeLists.txt
+        $INPLACE_SED 's/ARGS -std=c++14/ARGS -std=c++14 \${CXXINC1} \${CXXINC2} \${CXXINC3}/g' QueryEngine/CMakeLists.txt
+
         export CC=$BUILD_PREFIX/bin/clang
         export CXX=$BUILD_PREFIX/bin/clang++
+        export CMAKE_CC=$BUILD_PREFIX/bin/clang
+        export CMKAE_CXX=$BUILD_PREFIX/bin/clang++
         export CXXFLAGS="$CXXFLAGS -I$CXXINC1 -I$CXXINC2 -I$CXXINC3"  # see CXXINC? above
         export CFLAGS="$CFLAGS -I$CXXINC3"                            # for pthread.h
-    else
-        # untested
-        # Note that go overwrites CC and CXX with nonsense (see
-        # https://github.com/conda-forge/go-feedstock/issues/47),
-        # hence we redefine these here:
-        export CC=$BUILD_PREFIX/bin/$HOST-gcc
-        export CXX=$BUILD_PREFIX/bin/$HOST-g++
-    fi
 
-    # resolves `cannot find -lgcc`:
-    export LDFLAGS="$LDFLAGS -Wl,-L$GCCLIBDIR"
+        # When using clang/clang++, make sure that linker finds gcc
+        # .o/.a files:
+        export CXXFLAGS="$CXXFLAGS  -B $GCCSYSROOT/usr/lib"  # resolves `cannot find crt1.o`
+        export CXXFLAGS="$CXXFLAGS  -B $GCCLIBDIR"           # resolves `cannot find crtbegin.o`
+        export CFLAGS="$CFLAGS  -B $GCCSYSROOT/usr/lib"      # resolves `cannot find crt1.o`
+        export CFLAGS="$CFLAGS  -B $GCCLIBDIR"               # resolves `cannot find crtbegin.o`
+
+        # resolves `cannot find -lgcc`:
+        export LDFLAGS="$LDFLAGS -Wl,-L$GCCLIBDIR"
+    else
+        export CC=$BUILD_PREFIX/bin/clang
+        export CXX=  # not used
+        export CMAKE_CC=$BUILD_PREFIX/bin/$HOST-gcc
+        export CMAKE_CXX=$BUILD_PREFIX/bin/$HOST-g++
+
+        # Add gcc include directory to astparser, resolves `not found include file`: cstdint
+        $INPLACE_SED 's!arg_vector\[3\] = {arg0, arg1!arg_vector\[4\] = {arg0, arg1, "-extra-arg=-I'$GXXINCLUDEDIR'"!g' QueryEngine/UDFCompiler.cpp
+    fi
 
     # fixes `undefined reference to
     # `boost::system::detail::system_category_instance'` issue:
     export CXXFLAGS="$CXXFLAGS -DBOOST_ERROR_CODE_HEADER_ONLY"
 
-    # When using clang/clang++, make sure that linker finds gcc .o/.a files:
-    export CXXFLAGS="$CXXFLAGS  -B $GCCSYSROOT/usr/lib"  # resolves `cannot find crt1.o`
-    export CXXFLAGS="$CXXFLAGS  -B $GCCLIBDIR"           # resolves `cannot find crtbegin.o`
-    export CFLAGS="$CFLAGS  -B $GCCSYSROOT/usr/lib"      # resolves `cannot find crt1.o`
-    export CFLAGS="$CFLAGS  -B $GCCLIBDIR"               # resolves `cannot find crtbegin.o`
+    # make sure that $LD is always used for a linker:
+    cp -v $LD $BUILD_PREFIX/bin/ld
 fi
 
-# make sure that $LD is always used for a linker:
-cp -v $LD $BUILD_PREFIX/bin/ld
-
-export CMAKE_COMPILERS="-DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX"  
+export CMAKE_COMPILERS="-DCMAKE_C_COMPILER=$CMAKE_CC -DCMAKE_CXX_COMPILER=$CMAKE_CXX"
 
 mkdir -p build
 cd build
 
-cmake \
+cmake -Wno-dev \
     -DCMAKE_INSTALL_PREFIX=$PREFIX \
     -DCMAKE_BUILD_TYPE=release \
     -DMAPD_DOCS_DOWNLOAD=off \
@@ -111,6 +137,9 @@ cmake \
 
 make -j $CPU_COUNT
 make install
+
+# the latest double-conversion.so is installed to <prefix>/lib64:
+export LD_LIBRARY_PATH=$PREFIX/lib64:$LD_LIBRARY_PATH
 
 mkdir tmp
 $PREFIX/bin/initdb tmp
