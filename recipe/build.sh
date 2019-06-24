@@ -9,19 +9,17 @@ else
     INPLACE_SED="sed -i"
 fi
 
-# conda build cannot find boost libraries from
-# ThirdParty/lib. Actually, moving environment boost libraries to
-# ThirdParty/lib does not make much sense. The following is just a
-# quick workaround of the problem. Upstream will remove the relevant
-# code from CMakeLists.txt as not needed.
-$INPLACE_SED 's:DESTINATION ThirdParty/lib:DESTINATION lib:g' CMakeLists.txt
-
 export LDFLAGS="-L$PREFIX/lib -Wl,-rpath,$PREFIX/lib"
 
 # Enforce PREFIX instead of BUILD_PREFIX:
 export ZLIB_ROOT=$PREFIX
 export LibArchive_ROOT=$PREFIX
 export Curses_ROOT=$PREFIX
+export Glog_ROOT=$PREFIX
+export Snappy_ROOT=$PREFIX
+export Boost_ROOT=$PREFIX
+export PNG_ROOT=$PREFIX
+export GDAL_ROOT=$PREFIX
 
 # Make sure -fPIC is not in CXXFLAGS (that some conda packages may
 # add):
@@ -29,8 +27,8 @@ export CXXFLAGS="`echo $CXXFLAGS | sed 's/-fPIC//'`"
 
 # go overwrites CC and CXX with nonsense (see
 # https://github.com/conda-forge/go-feedstock/issues/47), hence we
-# redefine these below. The following resets GO env variables for
-# omniscidb build:
+# redefine these below. Reset GO env variables for omniscidb build
+# (IIRC, it is needed for CUDA support):
 #export CGO_ENABLED=1
 #export CGO_LDFLAGS=
 #export CGO_CFLAGS=$CFLAGS
@@ -38,20 +36,31 @@ export CXXFLAGS="`echo $CXXFLAGS | sed 's/-fPIC//'`"
 
 
 if [ $(uname) == Darwin ]; then
-    # Darwin has only clang. WIP.
-    COMPILERNAME=clang   # options: clang
-    export CMAKE_CC=$CLANG
-    export CMAKE_CXX=$CLANGXX
+    # Darwin has only clang, must use clang++ from clangdev
+    export CC=$PREFIX/bin/clang
+    export CXX=$PREFIX/bin/clang++
+    export CMAKE_CC=$PREFIX/bin/clang
+    export CMAKE_CXX=$PREFIX/bin/clang++
 
-    mv QueryEngine/CMakeLists.txt QueryEngine/CMakeLists.txt-orig
     # Adding `--sysroot=...` resolves `no member named 'signbit' in the global namespace` error:
-    echo -e "set(BUILD_SYSROOT $CONDA_BUILD_SYSROOT)" > QueryEngine/CMakeLists.txt
     # Adding `-I$BUILD_SYSROOT_INLCUDE` resolves `assert.h file not found` error:
-    echo -e "set(BUILD_SYSROOT_INLCUDE $CONDA_BUILD_SYSROOT/usr/include)" >> QueryEngine/CMakeLists.txt
-    cat QueryEngine/CMakeLists.txt-orig >> QueryEngine/CMakeLists.txt
+    $INPLACE_SED 's!ARGS -std=c++14!ARGS -std=c++14 --sysroot=\'$CONDA_BUILD_SYSROOT' -I\'$CONDA_BUILD_SYSROOT/usr/include'!g' QueryEngine/CMakeLists.txt
+    
+    # Force ncurses from conda host environment (enable when needed):
+    #$INPLACE_SED 's/find_package(Curses REQUIRED)/set(CURSES_NEED_NCURSES TRUE)\'$'\nfind_package(Curses REQUIRED)/g' CMakeLists.txt
 
-    $INPLACE_SED 's/ARGS -std=c++14/ARGS -std=c++14 -v --sysroot=\${BUILD_SYSROOT} -I\${BUILD_SYSROOT_INCLUDE}/g' QueryEngine/CMakeLists.txt
+    # Adjust OPENSSL_ROOT for conda environment. This ensures that
+    # openssl is picked up from host environment:
+    $INPLACE_SED 's!/usr/local/opt/openssl!\'$PREFIX'!g' CMakeLists.txt
 
+    # Avoid picking up boost/regexp header files from system if there:
+    $INPLACE_SED 's!/usr/local!\'$PREFIX'!g' CMakeLists.txt
+
+    # Make sure that llvm-config and clang++ are from host
+    # environment, otherwise the build environment contains
+    # clang/llvm-4.0.1 that will interfer badly with llvmdev/clangdev
+    # in the host environment:
+    export PATH=$PREFIX/bin:$PATH
 else
     # Linux
     echo "uname=${uname}"
@@ -137,9 +146,6 @@ cmake -Wno-dev \
 
 make -j $CPU_COUNT
 make install
-
-# the latest double-conversion.so is installed to <prefix>/lib64:
-export LD_LIBRARY_PATH=$PREFIX/lib64:$LD_LIBRARY_PATH
 
 mkdir tmp
 $PREFIX/bin/initdb tmp
