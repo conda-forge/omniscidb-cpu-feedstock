@@ -11,48 +11,44 @@ source:
   sha256: {{ sha256 }}
 
 build:
-  number: 0
-  skip: True  # [not linux]
+  number: 1
+  skip: True  # [win]
 
 requirements:
   build:
-    - {{ compiler('cxx') }}   # [linux] required for C++ headers (when using clang)
-    - {{ compiler('c') }}     # [linux] (when using gcc, disable it when switching to clang)
+    # In OSX, we use clang++ from clangdev as a compiler
+    - {{ compiler('cxx') }}   # [not osx]
+    - {{ compiler('c') }}     # [not osx]
+    - boost-cpp 1.68.*        # to avoid cmake picking up boost-cpp 1.70+
     - cmake
     - make
-    - maven
-    - openjdk 8.*
-    - wget
-    - clangdev      # [linux] llvm 8 is ok when using gcc as compiler
-    - clangdev 7.*  # [osx] using clang 8 as compiler, many tests fail 
     - go
-    - bisonpp
+    - maven
   host:
-    - snappy
-    - arrow-cpp >=0.12.1
-    - blosc
+    - {{ compiler('cxx') }}    # [not osx]
+    - {{ compiler('c') }}      # [not osx]
     - boost-cpp 1.68.*
+    - llvmdev
+    - clangdev
     - double-conversion
-    - libgdal 2.*   # with libgdal-3 one ImportTest fails
-    - flex
+    - snappy
     - gflags
     - glog
     - libarchive
     - libkml
     - libpng
-    - llvmdev       # [linux]
-    - clangdev      # [linux], required here for clang/llvm 8 support
-    - llvmdev 7.*   # [osx], see above
-    - clangdev 7.*  # [osx], see above
-    - openssl
+    - blosc
+    - libgdal 2.*   # with libgdal-3 one ImportTest fails
+    - arrow-cpp >=0.12.1
     - thrift-cpp >=0.11.0
     - ncurses
-    # omnscidb server calls clang++ in runtime for UDF support
-    - {{ compiler('cxx') }}   # [linux] required for C++ headers (when using clang)
+    - flex
+    - bisonpp
+    - openssl
   run:
+    - boost-cpp 1.68.*
     - arrow-cpp >=0.12.1
     - snappy
-    - boost-cpp 1.68.*
     - double-conversion
     - libgdal 2.*
     - glog
@@ -62,12 +58,11 @@ requirements:
     - xz
     - bzip2
     - zlib
-    # omnscidb server calls clang++ in runtime for UDF support
-    - {{ compiler('cxx') }}   # [linux] required for C++ headers (when using clang)
-    - llvmdev       # [linux]
-    - clangdev      # [linux], required here for clang/llvm 8 support
-    - llvmdev 7.*   # [osx], see above
-    - clangdev 7.*  # [osx], see above
+    # omnscidb UDF support calls clang++ in loadtime
+    - {{ compiler('cxx') }}   # [not osx]
+    - llvmdev
+    - clangdev
+
 
 about:
   home: https://www.omnisci.com/
