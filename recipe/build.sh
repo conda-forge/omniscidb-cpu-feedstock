@@ -85,22 +85,20 @@ else
         export CFLAGS="$CFLAGS -pthread"
         export LDFLAGS="$LDFLAGS -lpthread -lrt -lresolv"
     else
-        GXX=$BUILD_PREFIX/bin/$HOST-g++         # replace with $GXX
-        GCCSYSROOT=$BUILD_PREFIX/$HOST/sysroot
-        GCCVERSION=$(basename $(dirname $($GXX -print-libgcc-file-name)))
-        GXXINCLUDEDIR=$BUILD_PREFIX/$HOST/include/c++/$GCCVERSION
-        GCCLIBDIR=$BUILD_PREFIX/lib/gcc/$HOST/$GCCVERSION
-
         export CC=$PREFIX/bin/clang
         export CXX=  # not used
         export CMAKE_CC=$PREFIX/bin/$HOST-gcc
         export CMAKE_CXX=$PREFIX/bin/$HOST-g++
-
-        # Add gcc include directory to astparser, resolves `not found
-        # include file`: cstdint
-        # TODO: recheck its need as on Ubuntu 18.04 tests pass without this patch
-        $INPLACE_SED 's!arg_vector\[3\] = {arg0, arg1!arg_vector\[4\] = {arg0, arg1, "-extra-arg=-I'$GXXINCLUDEDIR'"!g' QueryEngine/UDFCompiler.cpp
     fi
+    GXX=$BUILD_PREFIX/bin/$HOST-g++         # replace with $GXX
+    GCCVERSION=$(basename $(dirname $($GXX -print-libgcc-file-name)))
+    GXXINCLUDEDIR=$BUILD_PREFIX/$HOST/include/c++/$GCCVERSION
+    # Add gcc include directory to astparser, resolves `not found
+    # include file`: cstdint
+    # On Ubuntu 18.04 tests pass without this patch, however, the
+    # patch is required on Centos and apparently on CI machines
+    # (Ubuntu 16.04)
+    $INPLACE_SED 's!arg_vector\[3\] = {arg0, arg1!arg_vector\[4\] = {arg0, arg1, "-extra-arg=-I'$GXXINCLUDEDIR'"!g' QueryEngine/UDFCompiler.cpp
 
     # fixes `undefined reference to
     # `boost::system::detail::system_category_instance'`:
