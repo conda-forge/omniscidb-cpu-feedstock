@@ -84,17 +84,12 @@ else
         # Add include directories for explicit clang++ call in
         # QueryEngine/CMakeLists.txt for building RuntimeFunctions.bc
         # and ExtensionFunctions.ast:
-        mv QueryEngine/CMakeLists.txt QueryEngine/CMakeLists.txt-orig
-        echo -e "set(CXXINC1 \"-I$CXXINC1\")" > QueryEngine/CMakeLists.txt
-        echo -e "set(CXXINC2 \"-I$CXXINC2\")" >> QueryEngine/CMakeLists.txt
-        echo -e "set(CXXINC3 \"-I$CXXINC3\")" >> QueryEngine/CMakeLists.txt
-        cat QueryEngine/CMakeLists.txt-orig >> QueryEngine/CMakeLists.txt
-        $INPLACE_SED 's/ARGS -std=c++14/ARGS -std=c++14 \${CXXINC1} \${CXXINC2} \${CXXINC3}/g' QueryEngine/CMakeLists.txt
+        $INPLACE_SED 's!ARGS -std=c++14!ARGS -std=c++14 -I\'$CXXINC1' -I\'$CXXINC2' -I\'$CXXINC3'!g' QueryEngine/CMakeLists.txt
 
-        export CC=$BUILD_PREFIX/bin/clang
-        export CXX=$BUILD_PREFIX/bin/clang++
-        export CMAKE_CC=$BUILD_PREFIX/bin/clang
-        export CMKAE_CXX=$BUILD_PREFIX/bin/clang++
+        export CC=$PREFIX/bin/clang
+        export CXX=$PREFIX/bin/clang++
+        export CMAKE_CC=$PREFIX/bin/clang
+        export CMKAE_CXX=$PREFIX/bin/clang++
         export CXXFLAGS="$CXXFLAGS -I$CXXINC1 -I$CXXINC2 -I$CXXINC3"  # see CXXINC? above
         export CFLAGS="$CFLAGS -I$CXXINC3"                            # for pthread.h
 
@@ -108,7 +103,7 @@ else
         # resolves `cannot find -lgcc`:
         export LDFLAGS="$LDFLAGS -Wl,-L$GCCLIBDIR"
     else
-        export CC=$BUILD_PREFIX/bin/clang
+        export CC=$PREFIX/bin/clang
         export CXX=  # not used
         export CMAKE_CC=$BUILD_PREFIX/bin/$HOST-gcc
         export CMAKE_CXX=$BUILD_PREFIX/bin/$HOST-g++
@@ -118,10 +113,10 @@ else
     fi
 
     # fixes `undefined reference to
-    # `boost::system::detail::system_category_instance'` issue:
+    # `boost::system::detail::system_category_instance'`:
     export CXXFLAGS="$CXXFLAGS -DBOOST_ERROR_CODE_HEADER_ONLY"
 
-    # make sure that $LD is always used for a linker:
+    # make sure that $LD is always used as a linker:
     cp -v $LD $BUILD_PREFIX/bin/ld
 fi
 

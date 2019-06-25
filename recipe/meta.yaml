@@ -29,6 +29,8 @@ requirements:
     - go
     - maven
   host:
+    - {{ compiler('cxx') }}    # [not osx]
+    - {{ compiler('c') }}      # [not osx]
     - boost-cpp 1.68.*
     - llvmdev
     - clangdev
