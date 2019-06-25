@@ -9,6 +9,13 @@ else
     INPLACE_SED="sed -i"
 fi
 
+# conda build cannot find boost libraries from
+# ThirdParty/lib. Actually, moving environment boost libraries to
+# ThirdParty/lib does not make much sense. The following is just a
+# quick workaround of the problem. Upstream will remove the relevant
+# code from CMakeLists.txt as not needed.
+$INPLACE_SED 's:DESTINATION ThirdParty/lib:DESTINATION lib:g' CMakeLists.txt
+
 export LDFLAGS="-L$PREFIX/lib -Wl,-rpath,$PREFIX/lib"
 
 # Enforce PREFIX instead of BUILD_PREFIX:
@@ -34,6 +41,12 @@ export CXXFLAGS="`echo $CXXFLAGS | sed 's/-fPIC//'`"
 #export CGO_CFLAGS=$CFLAGS
 #export CGO_CPPFLAGS=
 
+# Adjust OPENSSL_ROOT for conda environment. This ensures that
+# openssl is picked up from host environment:
+$INPLACE_SED 's!/usr/local/opt/openssl!\'$PREFIX'!g' CMakeLists.txt
+
+# Avoid picking up boost/regexp header files from system if there:
+$INPLACE_SED 's!/usr/local!\'$PREFIX'!g' CMakeLists.txt
 
 if [ $(uname) == Darwin ]; then
     # Darwin has only clang, must use clang++ from clangdev
@@ -49,13 +62,6 @@ if [ $(uname) == Darwin ]; then
     # Force ncurses from conda host environment (enable when needed):
     #$INPLACE_SED 's/find_package(Curses REQUIRED)/set(CURSES_NEED_NCURSES TRUE)\'$'\nfind_package(Curses REQUIRED)/g' CMakeLists.txt
 
-    # Adjust OPENSSL_ROOT for conda environment. This ensures that
-    # openssl is picked up from host environment:
-    $INPLACE_SED 's!/usr/local/opt/openssl!\'$PREFIX'!g' CMakeLists.txt
-
-    # Avoid picking up boost/regexp header files from system if there:
-    $INPLACE_SED 's!/usr/local!\'$PREFIX'!g' CMakeLists.txt
-
     # Make sure that llvm-config and clang++ are from host
     # environment, otherwise the build environment contains
     # clang/llvm-4.0.1 that will interfer badly with llvmdev/clangdev
@@ -67,48 +73,32 @@ else
     # must use gcc compiler as llvmdev is built with gcc and there
     # exists ABI incompatibility between llvmdev-7 built with gcc and
     # clang.
-    COMPILERNAME=gcc                      # options: clang, gcc
-
-    GXX=$BUILD_PREFIX/bin/$HOST-g++         # replace with $GXX
-    GCCSYSROOT=$BUILD_PREFIX/$HOST/sysroot
-    GCCVERSION=$(basename $(dirname $($GXX -print-libgcc-file-name)))
-    GXXINCLUDEDIR=$BUILD_PREFIX/$HOST/include/c++/$GCCVERSION
-    GCCLIBDIR=$BUILD_PREFIX/lib/gcc/$HOST/$GCCVERSION
+    COMPILERNAME=clang                      # options: clang, gcc
 
     if [ "$COMPILERNAME" == "clang" ]; then
-        # Fix `not found include file` errors:
-        CXXINC1=$GXXINCLUDEDIR            # cassert, ...
-        CXXINC2=$GXXINCLUDEDIR/$HOST      # <string> requires bits/c++config.h
-        CXXINC3=$GCCSYSROOT/usr/include   # pthread.h
-
-        # Add include directories for explicit clang++ call in
-        # QueryEngine/CMakeLists.txt for building RuntimeFunctions.bc
-        # and ExtensionFunctions.ast:
-        $INPLACE_SED 's!ARGS -std=c++14!ARGS -std=c++14 -I\'$CXXINC1' -I\'$CXXINC2' -I\'$CXXINC3'!g' QueryEngine/CMakeLists.txt
-
         export CC=$PREFIX/bin/clang
         export CXX=$PREFIX/bin/clang++
         export CMAKE_CC=$PREFIX/bin/clang
-        export CMKAE_CXX=$PREFIX/bin/clang++
-        export CXXFLAGS="$CXXFLAGS -I$CXXINC1 -I$CXXINC2 -I$CXXINC3"  # see CXXINC? above
-        export CFLAGS="$CFLAGS -I$CXXINC3"                            # for pthread.h
+        export CMAKE_CXX=$PREFIX/bin/clang++
 
-        # When using clang/clang++, make sure that linker finds gcc
-        # .o/.a files:
-        export CXXFLAGS="$CXXFLAGS  -B $GCCSYSROOT/usr/lib"  # resolves `cannot find crt1.o`
-        export CXXFLAGS="$CXXFLAGS  -B $GCCLIBDIR"           # resolves `cannot find crtbegin.o`
-        export CFLAGS="$CFLAGS  -B $GCCSYSROOT/usr/lib"      # resolves `cannot find crt1.o`
-        export CFLAGS="$CFLAGS  -B $GCCLIBDIR"               # resolves `cannot find crtbegin.o`
-
-        # resolves `cannot find -lgcc`:
-        export LDFLAGS="$LDFLAGS -Wl,-L$GCCLIBDIR"
+        # Resolves `It appears that you have Arrow < 0.10.0`:
+        export CFLAGS="$CFLAGS -pthread"
+        export LDFLAGS="$LDFLAGS -lpthread -lrt -lresolv"
     else
+        GXX=$BUILD_PREFIX/bin/$HOST-g++         # replace with $GXX
+        GCCSYSROOT=$BUILD_PREFIX/$HOST/sysroot
+        GCCVERSION=$(basename $(dirname $($GXX -print-libgcc-file-name)))
+        GXXINCLUDEDIR=$BUILD_PREFIX/$HOST/include/c++/$GCCVERSION
+        GCCLIBDIR=$BUILD_PREFIX/lib/gcc/$HOST/$GCCVERSION
+
         export CC=$PREFIX/bin/clang
         export CXX=  # not used
-        export CMAKE_CC=$BUILD_PREFIX/bin/$HOST-gcc
-        export CMAKE_CXX=$BUILD_PREFIX/bin/$HOST-g++
+        export CMAKE_CC=$PREFIX/bin/$HOST-gcc
+        export CMAKE_CXX=$PREFIX/bin/$HOST-g++
 
-        # Add gcc include directory to astparser, resolves `not found include file`: cstdint
+        # Add gcc include directory to astparser, resolves `not found
+        # include file`: cstdint
+        # TODO: recheck its need as on Ubuntu 18.04 tests pass without this patch
         $INPLACE_SED 's!arg_vector\[3\] = {arg0, arg1!arg_vector\[4\] = {arg0, arg1, "-extra-arg=-I'$GXXINCLUDEDIR'"!g' QueryEngine/UDFCompiler.cpp
     fi
 

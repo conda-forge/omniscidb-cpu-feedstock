@@ -22,10 +22,6 @@ requirements:
     - boost-cpp 1.68.*        # to avoid cmake picking up boost-cpp 1.70+
     - cmake
     - make
-    #- openjdk 8.*
-    #- llvmdev                 # [linux]
-    #- clangdev                # [linux]
-    #- wget                    # [linux]
     - go
     - maven
   host:
