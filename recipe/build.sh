@@ -45,15 +45,23 @@ export CXXFLAGS="`echo $CXXFLAGS | sed 's/-fPIC//'`"
 # openssl is picked up from host environment:
 $INPLACE_SED 's!/usr/local/opt/openssl!\'$PREFIX'!g' CMakeLists.txt
 
-# Avoid picking up boost/regexp header files from system if there:
+# Avoid picking up boost/regexp header files from local system if
+# there:
 $INPLACE_SED 's!/usr/local!\'$PREFIX'!g' CMakeLists.txt
+
+# Make sure that llvm-config and clang++ are from host environment,
+# otherwise (i) the build environment may contain clang/llvm-4.0.1
+# that will interfer badly with llvmdev/clangdev in the host
+# environment, (ii) UdfTest will fail:
+export PATH=$PREFIX/bin:$PATH
 
 if [ $(uname) == Darwin ]; then
     # Darwin has only clang, must use clang++ from clangdev
-    export CC=$PREFIX/bin/clang
-    export CXX=$PREFIX/bin/clang++
-    export CMAKE_CC=$PREFIX/bin/clang
-    export CMAKE_CXX=$PREFIX/bin/clang++
+    # All these must be picked up from $PREFIX/bin
+    export CC=clang
+    export CXX=clang++
+    export CMAKE_CC=clang
+    export CMAKE_CXX=clang++
 
     # Adding `--sysroot=...` resolves `no member named 'signbit' in the global namespace` error:
     # Adding `-I$BUILD_SYSROOT_INLCUDE` resolves `assert.h file not found` error:
@@ -62,11 +70,6 @@ if [ $(uname) == Darwin ]; then
     # Force ncurses from conda host environment (enable when needed):
     #$INPLACE_SED 's/find_package(Curses REQUIRED)/set(CURSES_NEED_NCURSES TRUE)\'$'\nfind_package(Curses REQUIRED)/g' CMakeLists.txt
 
-    # Make sure that llvm-config and clang++ are from host
-    # environment, otherwise the build environment contains
-    # clang/llvm-4.0.1 that will interfer badly with llvmdev/clangdev
-    # in the host environment:
-    export PATH=$PREFIX/bin:$PATH
 else
     # Linux
     echo "uname=${uname}"
@@ -76,23 +79,25 @@ else
     COMPILERNAME=clang                      # options: clang, gcc
 
     if [ "$COMPILERNAME" == "clang" ]; then
-        export CC=$PREFIX/bin/clang
-        export CXX=$PREFIX/bin/clang++
-        export CMAKE_CC=$PREFIX/bin/clang
-        export CMAKE_CXX=$PREFIX/bin/clang++
+        # All these must be picked up from $PREFIX/bin
+        export CC=clang
+        export CXX=clang++
+        export CMAKE_CC=clang
+        export CMAKE_CXX=clang++
 
         # Resolves `It appears that you have Arrow < 0.10.0`:
         export CFLAGS="$CFLAGS -pthread"
         export LDFLAGS="$LDFLAGS -lpthread -lrt -lresolv"
     else
-        export CC=$PREFIX/bin/clang
+        export CC=clang
         export CXX=  # not used
-        export CMAKE_CC=$PREFIX/bin/$HOST-gcc
-        export CMAKE_CXX=$PREFIX/bin/$HOST-g++
+        export CMAKE_CC=$HOST-gcc
+        export CMAKE_CXX=$HOST-g++
     fi
-    GXX=$BUILD_PREFIX/bin/$HOST-g++         # replace with $GXX
+
+    GXX=$HOST-g++         # replace with $GXX
     GCCVERSION=$(basename $(dirname $($GXX -print-libgcc-file-name)))
-    GXXINCLUDEDIR=$BUILD_PREFIX/$HOST/include/c++/$GCCVERSION
+    GXXINCLUDEDIR=$PREFIX/$HOST/include/c++/$GCCVERSION
     # Add gcc include directory to astparser, resolves `not found
     # include file`: cstdint
     # On Ubuntu 18.04 tests pass without this patch, however, the
@@ -103,9 +108,6 @@ else
     # fixes `undefined reference to
     # `boost::system::detail::system_category_instance'`:
     export CXXFLAGS="$CXXFLAGS -DBOOST_ERROR_CODE_HEADER_ONLY"
-
-    # make sure that $LD is always used as a linker:
-    cp -v $LD $BUILD_PREFIX/bin/ld
 fi
 
 export CMAKE_COMPILERS="-DCMAKE_C_COMPILER=$CMAKE_CC -DCMAKE_CXX_COMPILER=$CMAKE_CXX"
