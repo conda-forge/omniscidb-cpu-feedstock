@@ -1,6 +1,6 @@
 {% set name = "omniscidb-cpu" %}
-{% set version = "4.7.0" %}
-{% set sha256 = "00e4937ca15a13658e24bc18dd0468dd4820cf02a3d014161ac8cc9c6c7d3d1c" %}
+{% set version = "4.8.0" %}
+{% set sha256 = "06ec0990d362963fc5e02ad64bc90d99ad0d226014354de4566af267d33443b1" %}
 
 package:
   name: {{ name|lower }}
@@ -11,7 +11,7 @@ source:
   sha256: {{ sha256 }}
 
 build:
-  number: 2
+  number: 0
   skip: True  # [win]
 
 requirements:
