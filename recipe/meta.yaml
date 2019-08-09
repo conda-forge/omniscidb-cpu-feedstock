@@ -45,6 +45,7 @@ requirements:
     - flex
     - bisonpp
     - openssl
+    - librdkafka
   run:
     - boost-cpp 1.68.*
     - arrow-cpp >=0.12.1
@@ -58,6 +59,7 @@ requirements:
     - xz
     - bzip2
     - zlib
+    - librdkafka
     # omnscidb UDF support calls clang++ in loadtime
     - {{ compiler('cxx') }}   # [not osx]
     - llvmdev
