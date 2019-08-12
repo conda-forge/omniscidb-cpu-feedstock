@@ -1,0 +1,12 @@
+diff --git a/SQLFrontend/CommandHistoryFile.h b/SQLFrontend/CommandHistoryFile.h
+index 68ef07a..f731ebf 100644
+--- a/CommandHistoryFile.h
++++ b/CommandHistoryFile.h
+@@ -17,6 +17,7 @@
+ #ifndef COMMANDHISTORYFILE_H
+ #define COMMANDHISTORYFILE_H
+ 
++#include <cstdlib>
+ #include <iostream>
+ #include <string>
+ #include <utility>

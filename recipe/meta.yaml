@@ -9,6 +9,8 @@ package:
 source:
   url: https://github.com/omnisci/omniscidb/archive/v{{ version }}.tar.gz
   sha256: {{ sha256 }}
+  patches:
+    - patches/CommandHistoryFile.h.patch
 
 build:
   number: 0
@@ -19,15 +21,15 @@ requirements:
     # In OSX, we use clang++ from clangdev as a compiler
     - {{ compiler('cxx') }}   # [not osx]
     - {{ compiler('c') }}     # [not osx]
-    - boost-cpp 1.68          # to avoid cmake picking up boost-cpp 1.70+
-    - cmake 3.14
+    - boost-cpp 1.68.*        # to avoid cmake picking up boost-cpp 1.70+
+    - cmake 3.14.*
     - make
     - go
     - maven
   host:
     - {{ compiler('cxx') }}    # [not osx]
     - {{ compiler('c') }}      # [not osx]
-    - boost-cpp 1.68
+    - boost-cpp 1.68.*
     - llvmdev
     - clangdev
     - double-conversion
@@ -38,7 +40,7 @@ requirements:
     - libkml
     - libpng
     - blosc
-    - libgdal >=2.3
+    - libgdal >=2.3.*
     - arrow-cpp >=0.13.0
     - thrift-cpp >=0.11.0
     - ncurses
@@ -47,14 +49,14 @@ requirements:
     - openssl
     - librdkafka
   run:
-    - boost-cpp 1.68
+    - boost-cpp 1.68.*
     - arrow-cpp >=0.13.0
     - snappy
     - double-conversion
-    - libgdal >=2.3
+    - libgdal >=2.3.*
     - glog
     - gflags
-    - openjdk 8
+    - openjdk 8.*
     - ncurses
     - xz
     - bzip2
