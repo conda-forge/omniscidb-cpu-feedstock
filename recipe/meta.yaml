@@ -20,7 +20,7 @@ requirements:
     - {{ compiler('cxx') }}   # [not osx]
     - {{ compiler('c') }}     # [not osx]
     - boost-cpp 1.68          # to avoid cmake picking up boost-cpp 1.70+
-    - cmake
+    - cmake 3.14
     - make
     - go
     - maven
