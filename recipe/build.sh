@@ -31,6 +31,7 @@ export GDAL_ROOT=$PREFIX
 # Make sure -fPIC is not in CXXFLAGS (that some conda packages may
 # add):
 export CXXFLAGS="`echo $CXXFLAGS | sed 's/-fPIC//'`"
+export CXXFLAGS="$CXXFLAGS -Dsecure_getenv=getenv"
 
 # go overwrites CC and CXX with nonsense (see
 # https://github.com/conda-forge/go-feedstock/issues/47), hence we
