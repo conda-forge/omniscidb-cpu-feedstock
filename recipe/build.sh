@@ -31,6 +31,7 @@ export GDAL_ROOT=$PREFIX
 # Make sure -fPIC is not in CXXFLAGS (that some conda packages may
 # add):
 export CXXFLAGS="`echo $CXXFLAGS | sed 's/-fPIC//'`"
+export CXXFLAGS="$CXXFLAGS -Dsecure_getenv=getenv"
 
 # go overwrites CC and CXX with nonsense (see
 # https://github.com/conda-forge/go-feedstock/issues/47), hence we
@@ -62,6 +63,7 @@ if [ $(uname) == Darwin ]; then
     export CXX=clang++
     export CMAKE_CC=clang
     export CMAKE_CXX=clang++
+    export MACOSX_DEPLOYMENT_TARGET=10.12
 
     # Adding `--sysroot=...` resolves `no member named 'signbit' in the global namespace` error:
     # Adding `-I$BUILD_SYSROOT_INLCUDE` resolves `assert.h file not found` error:
