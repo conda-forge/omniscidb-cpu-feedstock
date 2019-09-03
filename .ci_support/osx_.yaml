@@ -9,7 +9,9 @@ glog:
 libkml:
 - '1.3'
 libpng:
-- 1.6.35
+- '1.6'
+librdkafka:
+- 0.11.5
 macos_machine:
 - x86_64-apple-darwin13.4.0
 macos_min_version:
@@ -23,6 +25,8 @@ pin_run_as_build:
     max_pin: x.x
   libpng:
     max_pin: x.x
+  librdkafka:
+    max_pin: x.x.x
   ncurses:
     max_pin: x.x
   openssl:
