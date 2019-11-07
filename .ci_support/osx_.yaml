@@ -6,6 +6,8 @@ channel_targets:
 - conda-forge main
 glog:
 - 0.4.0
+libarchive:
+- '3.3'
 libkml:
 - '1.3'
 libpng:
