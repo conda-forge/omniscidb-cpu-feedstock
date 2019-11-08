@@ -48,6 +48,7 @@ requirements:
     - librdkafka
   run:
     - boost-cpp 1.68.*
+    - arrow-cpp
     - snappy
     - double-conversion
     - libgdal >=2.3.*,<3
