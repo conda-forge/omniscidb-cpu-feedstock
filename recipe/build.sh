@@ -110,6 +110,7 @@ else
     # fixes `undefined reference to
     # `boost::system::detail::system_category_instance'`:
     export CXXFLAGS="$CXXFLAGS -DBOOST_ERROR_CODE_HEADER_ONLY"
+    export CXXFLAGS="$CXXFLAGS -D__STDC_FORMAT_MACROS"
 fi
 
 export CMAKE_COMPILERS="-DCMAKE_C_COMPILER=$CMAKE_CC -DCMAKE_CXX_COMPILER=$CMAKE_CXX"
