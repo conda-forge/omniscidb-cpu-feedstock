@@ -1,6 +1,6 @@
 {% set name = "omniscidb-cpu" %}
-{% set version = "5.0.0" %}
-{% set sha256 = "3115261258059f8ad61efc802cd6c13e8c0d62a07621ebcfad55bb6f8ceaa0ed" %}
+{% set version = "5.0.1" %}
+{% set sha256 = "805ee2fccd3712981687c1950c5d58e0417b4a98df03c8dce0dff90b08c137a0" %}
 
 package:
   name: {{ name|lower }}
