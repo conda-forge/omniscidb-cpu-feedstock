@@ -19,7 +19,7 @@ requirements:
     # In OSX, we use clang++ from clangdev as a compiler
     - {{ compiler('cxx') }}   # [not osx]
     - {{ compiler('c') }}     # [not osx]
-    - boost-cpp 1.68.*        # to avoid cmake picking up boost-cpp 1.70+
+    - boost-cpp
     - cmake 3.14.*
     - make
     - go
@@ -27,7 +27,7 @@ requirements:
   host:
     - {{ compiler('cxx') }}    # [not osx]
     - {{ compiler('c') }}      # [not osx]
-    - boost-cpp 1.68.*
+    - boost-cpp
     - llvmdev
     - clangdev
     - double-conversion
@@ -47,7 +47,7 @@ requirements:
     - openssl
     - librdkafka
   run:
-    - boost-cpp 1.68.*
+    - boost-cpp
     - arrow-cpp >=0.13.0
     - snappy
     - double-conversion
