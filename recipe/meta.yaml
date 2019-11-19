@@ -39,7 +39,7 @@ requirements:
     - libpng
     - blosc
     - libgdal >=2.3.*,<3
-    - arrow-cpp >=0.13.0
+    - arrow-cpp >=0.12.1,<0.14
     - thrift-cpp >=0.11.0
     - ncurses
     - flex
@@ -48,7 +48,7 @@ requirements:
     - librdkafka
   run:
     - boost-cpp
-    - arrow-cpp >=0.13.0
+    - arrow-cpp >=0.12.1,<0.14
     - snappy
     - double-conversion
     - libgdal >=2.3.*,<3
