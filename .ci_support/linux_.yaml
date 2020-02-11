@@ -37,7 +37,5 @@ pin_run_as_build:
     max_pin: x.x
   openssl:
     max_pin: x.x.x
-  snappy:
-    max_pin: x.x.x
 snappy:
-- 1.1.7
+- '1'
