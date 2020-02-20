@@ -39,8 +39,8 @@ requirements:
     - libpng
     - blosc
     - libgdal >=2.3.*,<3
-    - arrow-cpp >=0.13.0
-    - thrift-cpp >=0.11.0
+    - arrow-cpp
+    - thrift-cpp
     - ncurses
     - flex
     - bisonpp
