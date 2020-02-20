@@ -25,7 +25,7 @@ librdkafka:
 ncurses:
 - '6.1'
 openssl:
-- 1.1.1a
+- 1.1.1
 pin_run_as_build:
   libkml:
     max_pin: x.x
@@ -37,7 +37,5 @@ pin_run_as_build:
     max_pin: x.x
   openssl:
     max_pin: x.x.x
-  snappy:
-    max_pin: x.x.x
 snappy:
-- 1.1.7
+- '1'
