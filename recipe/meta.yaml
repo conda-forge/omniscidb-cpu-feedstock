@@ -1,6 +1,6 @@
 {% set name = "omniscidb-cpu" %}
-{% set version = "5.0.0" %}
-{% set sha256 = "3115261258059f8ad61efc802cd6c13e8c0d62a07621ebcfad55bb6f8ceaa0ed" %}
+{% set version = "5.1.1" %}
+{% set sha256 = "c27dfaa86870f259a39e6e25d0532b9c27f7c4b42e3e68c84d98286a00df9501" %}
 
 package:
   name: {{ name|lower }}
@@ -11,8 +11,8 @@ source:
   sha256: {{ sha256 }}
 
 build:
-  number: 1
-  skip: True  # [win]
+  number: 0
+  skip: true  # [win]
 
 requirements:
   build:
@@ -71,7 +71,7 @@ about:
   license: Apache-2.0
   license_family: Apache
   license_file: LICENSE.md
-  summary: 'The OmniSci database'
+  summary: The OmniSci database
 
   description: |
     OmniSciDB is an in-memory, column store, SQL relational database 
