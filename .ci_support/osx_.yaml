@@ -4,6 +4,8 @@ channel_sources:
 - conda-forge,defaults
 channel_targets:
 - conda-forge main
+gflags:
+- '2.2'
 glog:
 - 0.4.0
 libarchive:
