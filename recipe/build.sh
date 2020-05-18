@@ -132,6 +132,7 @@ cmake -Wno-dev \
     $CMAKE_COMPILERS \
     ..
 
+make gen-cpp/extension_functions_types.cpp.o
 make -j $CPU_COUNT
 make install
 

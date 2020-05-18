@@ -1,6 +1,6 @@
 {% set name = "omniscidb-cpu" %}
-{% set version = "5.0.0" %}
-{% set sha256 = "3115261258059f8ad61efc802cd6c13e8c0d62a07621ebcfad55bb6f8ceaa0ed" %}
+{% set version = "5.0.1" %}
+{% set sha256 = "805ee2fccd3712981687c1950c5d58e0417b4a98df03c8dce0dff90b08c137a0" %}
 
 package:
   name: {{ name|lower }}
@@ -19,7 +19,7 @@ requirements:
     # In OSX, we use clang++ from clangdev as a compiler
     - {{ compiler('cxx') }}   # [not osx]
     - {{ compiler('c') }}     # [not osx]
-    - boost-cpp 1.68.*        # to avoid cmake picking up boost-cpp 1.70+
+    - boost-cpp
     - cmake 3.14.*
     - make
     - go
@@ -27,7 +27,7 @@ requirements:
   host:
     - {{ compiler('cxx') }}    # [not osx]
     - {{ compiler('c') }}      # [not osx]
-    - boost-cpp 1.68.*
+    - boost-cpp
     - llvmdev
     - clangdev
     - double-conversion
@@ -39,7 +39,7 @@ requirements:
     - libpng
     - blosc
     - libgdal >=2.3.*,<3
-    - arrow-cpp >=0.13.0
+    - arrow-cpp >=0.12.1,<0.14
     - thrift-cpp >=0.11.0
     - ncurses
     - flex
@@ -47,8 +47,8 @@ requirements:
     - openssl
     - librdkafka
   run:
-    - boost-cpp 1.68.*
-    - arrow-cpp >=0.13.0
+    - boost-cpp
+    - arrow-cpp >=0.12.1,<0.14
     - snappy
     - double-conversion
     - libgdal >=2.3.*,<3
